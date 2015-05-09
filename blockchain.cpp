@@ -323,13 +323,22 @@ Block* getBlockByBlocknum(int blocknum)
     return gBlockVector.at(blocknum);
 }
 
-
+/*
+ * @brief Selects a random block from the gDeepestBlocks vector
+ * @return Pointer to the random block
+*/
 Block* getDeepestBlock()
 {
 
+
+	auto it = gDeepestBlocks.begin();
+	advance(it, rand() % gDeepestBlocks.size());
+
+	return *it;
 }
 
 //========================DAEMON CODE============================
+    // TODO while(true), return 0 if it was closed
 
 
 // TODO add initDaemon and init pthread, gBlocksAdded
@@ -342,7 +351,8 @@ inline void addToQueue(Block* toAdd)
     queueBlock.push_back(toAdd);
 }
 
-/*
+/*    // TODO while(true), return 0 if it was closed
+
 void attachBlockByNum(int blocknum)
 {
 
