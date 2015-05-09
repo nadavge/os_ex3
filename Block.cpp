@@ -1,6 +1,6 @@
 #include "Block.h"
 
-Block::Block() : _id(-1), _data(""), _children(new vector<Block*>())
+Block::Block() : _id(-1), _data(""), _children(new vector<Block*>()), _depth(-1)
 {
 	//ctor
 

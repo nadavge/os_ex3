@@ -45,7 +45,7 @@ class Block
 		/** Access _hash[HASH_LENGTH]
 		 * \return The current value of _hash[HASH_LENGTH]
 		 */
-		char Gethash[HASH_LENGTH]() { return _hash[HASH_LENGTH]; }
+		char getHash[HASH_LENGTH]() { return _hash[HASH_LENGTH]; }
 		/** Set _hash[HASH_LENGTH]
 		 * \param val New value to set
 		 */
@@ -65,6 +65,8 @@ class Block
 		vector <Block*> _children; //!< Member variable "_children"
 		char _hash[HASH_LENGTH]; //!< Member variable "_hash[HASH_LENGTH]"
 		Block* _father; //!< Member variable "_father"
+		int _depth;
+		static int maxDepth;
 };
 
 #endif // BLOCK_H
