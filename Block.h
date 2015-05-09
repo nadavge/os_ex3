@@ -54,9 +54,9 @@ class Block
 		int _id; //!< Member variable "_id"
 		char* _data; //!< Member variable "_data"
 		int _dataLength;
-		// TODO free data
+		// TODO Maybe remove children
 		vector <Block*> _children; //!< Member variable "_children"
-		char _hash[HASH_LENGTH]; //!< Member variable "_hash[HASH_LENGTH]"
+		char* _hash; //!< Member variable "_hash[HASH_LENGTH]"
 		Block* _father; //!< Member variable "_father"
 		int _depth;
 		static int s_maxDepth;

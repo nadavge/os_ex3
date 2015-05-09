@@ -379,8 +379,8 @@ inline void addToQueue(Block* toAdd)
 
 void addBlockToChain(Block* toAdd)
 {
+	// TODO What if THIS function FAILS?
 	int nonce = -1;
-	char* blockHash = nullptr;
     if(! RUNNING())
     {
         return NOT_STARTED;
@@ -396,7 +396,7 @@ void addBlockToChain(Block* toAdd)
     }
 
 	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
-	blockHash = generate_hash(toAdd->)
+	block->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
 
 
     if(! UNLOCK_ALL())

@@ -1,5 +1,5 @@
 #include "Block.h"
-
+// TODO change const init order
 Block::Block() :
     _id(-1),
     _children(new vector<Block*>()),
@@ -7,7 +7,8 @@ Block::Block() :
     _wasAddedInRealTime(false),
     _toAddInRealTime(false),
     _dataLength(-1),
-	_data(nullptr)
+	_data(nullptr),
+	_hash(nullptr)
 {
 
 }
@@ -24,6 +25,11 @@ bool Block::setData(char* data, int length)
 
 	return true;
 }
+void Block::setHash(char* blockHash)
+{
+	_hash = blockHash;
+}
+
 char* Block::getData()
 {
 	return _data;
@@ -62,18 +68,6 @@ static int Block::initMaxDepth()
 
 Block::~Block()
 {
-    //dtor
+    delete _hash;
+    delete _data;
 }
-/*
-Block::Block(const Block& other)
-{
-	//copy ctor
-}
-
-Block& Block::operator=(const Block& rhs)
-{
-	if (this == &rhs) return *this; // handle self assignment
-	//assignment operator
-	return *this;
-}
-*/
