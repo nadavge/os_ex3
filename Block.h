@@ -1,23 +1,14 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-
+#define HASH_SIZE (16+1)
 class Block
 {
 	public:
 		/** Default constructor */
-		Block();
+		Block(char* data, int length);
 		/** Default destructor */
 		virtual ~Block();
-		/** Copy constructor
-		 *  \param other Object to copy from
-		 */
-		Block(const Block& other);
-		/** Assignment operator
-		 *  \param other Object to assign from
-		 *  \return A reference to this
-		 */
-		Block& operator=(const Block& other);
 		/** Access _id
 		 * \return The current value of _id
 		 */
@@ -61,9 +52,9 @@ class Block
 	protected:
 	private:
 		int _id; //!< Member variable "_id"
-		// @TODO Decide whether _data should be char array (and length) or String
-		String _data; //!< Member variable "_data"
-
+		char* _data; //!< Member variable "_data"
+		int _dataLength;
+		// TODO free data
 		vector <Block*> _children; //!< Member variable "_children"
 		char _hash[HASH_LENGTH]; //!< Member variable "_hash[HASH_LENGTH]"
 		Block* _father; //!< Member variable "_father"

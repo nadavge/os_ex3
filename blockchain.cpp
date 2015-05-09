@@ -1,6 +1,9 @@
 // TODO add file documentation header
 #include <deque>
+#include<pthread.h>
+
 // TODO \forall functions check when -1
+// TODO Add on close - pthread_mutex_destroy(&lock); close_hash_generator();
 
 // TODO think
 /*
@@ -28,6 +31,8 @@ using namespace std;
 #define SUCCESS 0
 
 #define RUNNING() (gBlocksAdded != NOT_STARTED && ! gIsClosing)
+#define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
+#define UNLOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -53,6 +58,7 @@ static Block* gGenesis = nullptr;
 static vector<Block*> gBlockVector;
 static vector<Block*> gDeepestBlocks;
 static boolean gIsClosing = false;
+pthread_mutex_t lock;
 
 //========================IMPLEMENTATION==========================
 
@@ -69,10 +75,15 @@ int init_blockchain()
     {
         return ERROR;
     }
-
+    if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+        return ERROR;
+    }
     gBlocksAdded = 0;
     gIsClosing = false;
     // TODO Add more initialization?
+    init_hash_generator();
+
     Block::initMaxDepth();
     gGenesis = new Block();
     gGenesis->setFather(nullptr);
@@ -102,7 +113,12 @@ int add_block(char *data , int length)
     }
 
     int blockNum = -1;
-    Block block = new Block(data, length);
+    Block block = new Block();
+    if(! block->setData(data, length))
+	{
+		delete block;
+		return ERROR;
+	}
     block.setFather(getDeepestBlock());
     blockNum = takeMinUnusedBlocknum(block);
     addToQueue(block);
@@ -157,18 +173,18 @@ int attach_now(int block_num)
     {
         return NOT_STARTED;
     }
-	Block* block = getBlockByBlocknum(block_num);
-	if(block == nullptr)
-	{
-		return BLOCK_DOESNT_EXIST;
-	}
-	if(block->inChain())
-	{
-		return SUCCESS;
-	}
+    Block* block = getBlockByBlocknum(block_num);
+    if(block == nullptr)
+    {
+        return BLOCK_DOESNT_EXIST;
+    }
+    if(block->inChain())
+    {
+        return SUCCESS;
+    }
     // TODO Block all other block attachments
-	// TODO Calls the daemon attach function
-	// TODO Return 0 on success
+    // TODO Calls the daemon attach function
+    // TODO Return 0 on success
 }
 /*
  * DESCRIPTION: Without blocking, check whether block_num was added to the chain.
@@ -224,10 +240,12 @@ int prune_chain()
     {
         return NOT_STARTED;
     }
+    if(! LOCK_ALL())
+    {
+        return ERROR;
+    }
 
-	// TODO mutex lock
-	// TODO Handle queued blocks
-    // TODO Mutex lock - enable
+
     Block* deepest = getDeepestBlock();
     deque<Block*> longestChain;
     while(deepest != nullptr)
@@ -250,7 +268,13 @@ int prune_chain()
             gBlockVector.at(i) = nullptr;
         }
     }
-    // TODO Mutex lock - disable
+
+    // TODO Update queued father (assign new father if old father died)
+
+    if (! UNLOCK_ALL())
+    {
+        return ERROR;
+    }
 }
 
 /*
@@ -268,12 +292,14 @@ void close_chain()
     }
 
     gIsClosing = true;
-	// TODO Block all actions on the blockchain
-	// TODO Print hashed pending
+
+    // TODO Block all actions on the blockchain
+    // TODO Print hashed pending
     // TODO Signal daemon to call pthread_exit()
     // TODO Clear all variables and free stuff
     // TODO Mark we finished for return_on_close
     // TODO Reset gBlocksAdded to NOT_STARTED
+
 }
 
 /*
@@ -331,14 +357,14 @@ Block* getDeepestBlock()
 {
 
 
-	auto it = gDeepestBlocks.begin();
-	advance(it, rand() % gDeepestBlocks.size());
+    auto it = gDeepestBlocks.begin();
+    advance(it, rand() % gDeepestBlocks.size());
 
-	return *it;
+    return *it;
 }
 
 //========================DAEMON CODE============================
-    // TODO while(true), return 0 if it was closed
+// TODO while(true), return 0 if it was closed
 
 
 // TODO add initDaemon and init pthread, gBlocksAdded
@@ -349,6 +375,36 @@ void runDaemon()
 inline void addToQueue(Block* toAdd)
 {
     queueBlock.push_back(toAdd);
+}
+
+void addBlockToChain(Block* toAdd)
+{
+	int nonce = -1;
+	char* blockHash = nullptr;
+    if(! RUNNING())
+    {
+        return NOT_STARTED;
+    }
+    if(! LOCK_ALL())
+    {
+        return ERROR;
+    }
+
+    if(toAdd->toAddInRealTime())
+    {
+        toAdd->setFather(getDeepestBlock());
+    }
+
+	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
+	blockHash = generate_hash(toAdd->)
+
+
+    if(! UNLOCK_ALL())
+    {
+        return ERROR;
+    }
+
+
 }
 
 /*    // TODO while(true), return 0 if it was closed
