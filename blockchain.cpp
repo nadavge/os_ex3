@@ -1,10 +1,15 @@
+#include <deque>
 
+
+using namespace std;
 
 /*
  *       A multi threaded blockchain database manager
  *       Author: we!
  */
 
+
+int takeMinUnusedBlocknum(Block* block);
 
 /*
  * DESCRIPTION: This function initiates the Block chain, and creates the genesis Block.  The genesis Block does not hold any transaction data
@@ -13,7 +18,13 @@
  *      return with an error otherwise).
  * RETURN VALUE: On success 0, otherwise -1.
  */
-int init_blockchain();
+static Block* gGenesis = nullptr;
+static int gBlocksAdded = 0;
+vector<Block*> gBlockVector();
+// @TODO
+int init_blockchain() {
+
+}
 
 /*
  * DESCRIPTION: Ultimately, the function adds the hash of the data to the Block chain.
@@ -26,7 +37,16 @@ int init_blockchain();
  *      which is assigned from now on to this individual piece of data.
  *      On failure, -1 will be returned.
  */
-int add_block(char *data , int length);
+int add_block(char *data , int length)
+{
+	/*
+	 * @TODO allocates a block
+	 * @TODO adds data as string
+	 * @TODO assigns blocknum
+	 * @TODO adds to actions
+	 * @TODO return blocknum (or -1)
+	*/
+}
 
 /*
  * DESCRIPTION: Without blocking, enforce the policy that this block_num should be attached to the longest chain at the time of attachment of
@@ -83,7 +103,19 @@ void close_chain();
  *      If close_chain was not called it should return -2. In case of other error, it should return -1.
 */
 
-int return_on_close();
+int return_on_close()
+{
+
+}
+
+
+int takeMinUnusedBlocknum(Block* block)
+{
+
+}
+
+
+
 
 
 
