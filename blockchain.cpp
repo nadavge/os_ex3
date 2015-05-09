@@ -62,13 +62,12 @@ int to_longest(int block_num)
 	 * @TODO Checks if the block num doesn't exists: return -2
 	 * @TODO Other errors(???): return -1
 	 * @TODO Checks if was already added(depth>0): return 1
-	 * @TODO tells the daemon to set block_num as realtime:
-	 * @TODO 	Check if it's still in waiting: If yes, return 0
+	 * @TODO Sets the block addInRealTime to true
+	 * @TODO Check if it's still in waiting: If yes, return 0
 	 *          If not, check if it was added in real time - and return 0/1
 	*/
 
 	// even if set as real time, might've been added after we did the other check
-	return daemon_set_realtime(block_num) ? 0 : 1;
 }
 
 /*
@@ -79,7 +78,12 @@ int to_longest(int block_num)
 */
 int attach_now(int block_num)
 {
-
+	/*
+	 * @TODO Block all other block attachments
+	 * @TODO Check if the block num exists, otherwise return -2
+	 * @TODO Calls the daemon attach function
+	 * @TODO Return 0 on success/was already added
+	*/
 }
 /*
  * DESCRIPTION: Without blocking, check whether block_num was added to the chain.
