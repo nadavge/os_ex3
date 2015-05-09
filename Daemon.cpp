@@ -1,6 +1,6 @@
 #include "Daemon.h"
 static deque<Action> actions();
-
+// @TODO Add in the end tell pthread we finished
 
 void runDaemon()
 {
@@ -21,7 +21,3 @@ void attachBlockByNum(int blocknum)
 
 }
 
-void markAsRealTime(int blocknum)
-{
-
-}
