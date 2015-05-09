@@ -10,7 +10,7 @@ using namespace std;
 
 
 int takeMinUnusedBlocknum(Block* block);
-
+Block* getBlockByBlocknum(int blocknum);
 /*
  * DESCRIPTION: This function initiates the Block chain, and creates the genesis Block.  The genesis Block does not hold any transaction data
  *      or hash.
@@ -56,7 +56,20 @@ int add_block(char *data , int length)
  * RETURN VALUE: If block_num doesn't exist, return -2; In case of other errors, return -1; In case of success return 0; In case block_num is
  *      already attached return 1.
 */
-int to_longest(int block_num);
+int to_longest(int block_num)
+{
+	/*
+	 * @TODO Checks if the block num doesn't exists: return -2
+	 * @TODO Other errors(???): return -1
+	 * @TODO Checks if was already added(depth>0): return 1
+	 * @TODO tells the daemon to set block_num as realtime:
+	 * @TODO 	Check if it's still in waiting: If yes, return 0
+	 *          If not, check if it was added in real time - and return 0/1
+	*/
+
+	// even if set as real time, might've been added after we did the other check
+	return daemon_set_realtime(block_num) ? 0 : 1;
+}
 
 /*
  * DESCRIPTION: This function blocks all other Block attachments, until block_num is added to the chain. The block_num is the assigned value
@@ -64,8 +77,10 @@ int to_longest(int block_num);
  * RETURN VALUE: If block_num doesn't exist, return -2;
  *      In case of other errors, return -1; In case of success or if it is already attached return 0.
 */
-int attach_now(int block_num);
+int attach_now(int block_num)
+{
 
+}
 /*
  * DESCRIPTION: Without blocking, check whether block_num was added to the chain.
  *      The block_num is the assigned value that was previously returned by add_block.
@@ -110,6 +125,10 @@ int return_on_close()
 
 
 int takeMinUnusedBlocknum(Block* block)
+{
+
+}
+Block* getBlockByBlocknum(int blocknum)
 {
 
 }
