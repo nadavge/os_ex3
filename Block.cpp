@@ -8,7 +8,25 @@ Block::Block(char* data, int length) : _id(-1), _children(new vector<Block*>()),
 
 bool Block::inChain()
 {
-	return this._depth >= 0;
+	return _depth >= 0;
+}
+bool Block::wasAddedInRealTime()
+{
+	return _wasAddedInRealTime;
+}
+
+void Block::setAddInRealTime()
+{
+	_toAddInRealTime = true;
+}
+
+static int Block::getMaxDepth()
+{
+	return s_maxDepth;
+}
+static int Block::initMaxDepth()
+{
+	s_maxDepth = -1;
 }
 
 Block::~Block()

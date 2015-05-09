@@ -1,6 +1,6 @@
 // TODO add file documentation header
 #include <deque>
-
+// @TODO \forall functions check when -1
 using namespace std;
 
 /*
@@ -9,9 +9,13 @@ using namespace std;
  */
 
  #define BLOCK_DOESNT_EXIST -2
+ #define NOT_STARTED -1
+ #define NOT_CLOSING -2
+ #define ERROR -1
  #define BLOCK_IN_CHAIN 1
  #define SUCCESS 0
 
+#define STARTED() (gBlocksAdded != NOT_STARTED)
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -26,7 +30,7 @@ int takeMinUnusedBlocknum(Block* block);
 Block* getBlockByBlocknum(int blocknum);
 Block* getDeepestBlock();
 void runDaemon();
-void addToQueue(Block* toAdd);
+inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
 
 //========================GLOBALS================================
@@ -36,22 +40,36 @@ static int gBlocksAdded = 0;
 static Block* gGenesis = nullptr;
 static vector<Block*> gBlockVector();
 static vector<Block*> gDeepestBlocks();
+static boolean gIsClosing = false;
 
 //========================IMPLEMENTATION==========================
 
 /*
  * DESCRIPTION: This function initiates the Block chain, and creates the genesis Block.  The genesis Block does not hold any transaction data
- *      or hash.
- *      This function static deque<Action> actions();
-// @TODO Add in the end tell pthread we finished
-static int gBlocksAdded = 0;
-should be called prior to any other functions as a necessary precondition for their success (all other functions should
+ *      or hash. should be called prior to any other functions as a necessary precondition for their success (all other functions should
  *      return with an error otherwise).
  * RETURN VALUE: On success 0, otherwise -1.
  */
+
+// @TODO Add in the end tell pthread we finished
 int init_blockchain()
 {
+	if(STARTED())
+	{
+		return ERROR;
+	}
+	gBlocksAdded = 0;
+	gIsClosing = false;
+	// @TODO Add more initialization?
+	Block::initMaxDepth();
+	gGenesis = new Block();
+	gGenesis->setFather(nullptr);
+	gGenesis->setId(0);
+	gBlockVector.push_back(gGenesis);
+	gDeepestBlocks().push_back(gGenesis);
 
+
+	return 0;
 }
 
 /*
@@ -67,7 +85,10 @@ int init_blockchain()
  */
 int add_block(char *data , int length)
 {
-
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     /*
      * @TODO allocates a block
      * @TODO adds data as string
@@ -81,6 +102,7 @@ int add_block(char *data , int length)
 	block.setFather(getDeepestBlock());
 	blockNum = takeMinUnusedBlocknum(block);
 	addToQueue(block);
+	return blockNum;
 }
 
 /*
@@ -93,6 +115,10 @@ int add_block(char *data , int length)
 */
 int to_longest(int block_num)
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     /*
      * @TODO Checks if the block num doesn't exists: return -2
      * @TODO Other errors(???): return -1
@@ -107,12 +133,12 @@ int to_longest(int block_num)
 	{
 		return BLOCK_DOESNT_EXIST;
 	}
-	if(block.inChain())
+	if(block->inChain())
 	{
 		return BLOCK_IN_CHAIN;
 	}
-	block.setRealTime();
-	if(! block.inChain() || block.wasAddedInRealTime())
+	block->setAddInRealTime();
+	if(! block->inChain() || block->wasAddedInRealTime())
 	{
 		return SUCCESS;
 	}
@@ -131,6 +157,10 @@ int to_longest(int block_num)
 */
 int attach_now(int block_num)
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     /*
      * @TODO Block all other block attachments
      * @TODO Check if the block num exists, otherwise return -2
@@ -145,9 +175,28 @@ int attach_now(int block_num)
 */
 int was_added(int block_num)
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     /*
      * @TODO return depth>=0 if exists, otherwise -2
     */
+    Block* block = getBlockByBlocknum(block_num);
+
+	if(block == nullptr)
+	{
+		return BLOCK_DOESNT_EXIST;
+	}
+
+	if(block->inChain())
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 /*
@@ -158,6 +207,10 @@ int was_added(int block_num)
 */
 int chain_size()
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     // @TODO when -1???
     return gBlocksAdded;
 }
@@ -169,6 +222,10 @@ int chain_size()
 */
 int prune_chain()
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
     /*
      * @TODO mutex lock
      * @TODO Get deepest block
@@ -176,6 +233,31 @@ int prune_chain()
      * @TODO Delete irrelevant blocks from blockVector
      * @TODO Handle queued blocks
     */
+
+    // @TODO Mutex lock - enable
+    Block* deepest = getDeepestBlock();
+    deque<Block*> longestChain;
+    while(deepest->getFather() != nullptr) // @TODO maybe  != gGenesis?
+	{
+		longestChain.push_front(deepest);
+		deepest = deepest.getFather();
+	}
+	for(int i = 0; i < gBlockVector.size(); i++)
+	{
+		Block* currBlock;
+		currBlock = gBlockVector.at(i);
+		if(currBlock == nullptr)
+		{
+			continue;
+		}
+
+		if(currBlock != longestChain.at(currBlock->getDepth())) // @TODO maybe depth +/- 1?
+		{
+			delete gBlockVector.at(i);
+			gBlockVector.at(i) = nullptr;
+		}
+	}
+    // @TODO Mutex lock - disable
 }
 
 /*
@@ -187,6 +269,12 @@ int prune_chain()
 */
 void close_chain()
 {
+	if(! STARTED())
+	{
+		return NOT_STARTED;
+	}
+
+	gIsClosing = true;
     /*
     	* @TODO Block all actions on the blockchain
     	* @TODO Print hashed pending
@@ -209,6 +297,17 @@ int return_on_close()
     	* @TODO Check if close_chain was called, otherwise return -2
     	* @TODO while(true), return 0 if it was closed
     */
+    if( ! gIsClosing)
+	{
+		return NOT_CLOSING;
+	}
+	while(gIsClosing)
+	{
+		// @TODO Add a real statement instead of CLOSING
+		// @TODO Maybe let pthread know we're waiting?
+	}
+
+	return 0;
 }
 
 
@@ -219,12 +318,28 @@ int takeMinUnusedBlocknum(Block* block)
     	* @TODO If non found, add the block
     	* @TODO Return and set blocknum accordingly
     */
+    int blocknum = 0;
+    for (auto &i : gBlockVector) {
+		if(i == nullptr)
+		{
+			gBlockVector.at(blocknum) = block;
+			return blocknum;
+		}
+		blocknum++;
+	}
+	gBlockVector.push_back(block);
+	return blocknum;
 }
 Block* getBlockByBlocknum(int blocknum)
 {
     /*
     	* @TODO Returns the block from the vector if exists, otherwise nullptr
     */
+    if(blocknum >= gBlockVector.size())
+	{
+		return nullptr;
+	}
+	return gBlockVector.at(blocknum);
 }
 
 
@@ -242,7 +357,7 @@ void runDaemon()
 {
     gBlocksAdded = 0;
 }
-void addToQueue(Block* toAdd)
+inline void addToQueue(Block* toAdd)
 {
     queueBlock.push_back(toAdd);
 }
