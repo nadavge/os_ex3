@@ -8,26 +8,49 @@ using namespace std;
  *       Author: we!
  */
 
-//========================DECLARATIONS===========================
+ #define BLOCK_DOESNT_EXIST -2
+ #define BLOCK_IN_CHAIN 1
+ #define SUCCESS 0
 
+//========================DECLARATIONS===========================
+int init_blockchain();
+int add_block(char *data , int length);
+int to_longest(int block_num);
+int attach_now(int block_num);
+int was_added(int block_num);
+int chain_size();
+int prune_chain();
+void close_chain();
+int return_on_close();
 int takeMinUnusedBlocknum(Block* block);
 Block* getBlockByBlocknum(int blocknum);
+Block* getDeepestBlock();
+void runDaemon();
+void addToQueue(Block* toAdd);
+void attachBlockByNum(int blocknum);
 
- //========================GLOBALS================================
-
+//========================GLOBALS================================
+static deque<Block*> queueBlock();
+// @TODO Add in the end tell pthread we finished flag
+static int gBlocksAdded = 0;
 static Block* gGenesis = nullptr;
-vector<Block*> gBlockVector();
+static vector<Block*> gBlockVector();
+static vector<Block*> gDeepestBlocks();
 
 //========================IMPLEMENTATION==========================
 
 /*
  * DESCRIPTION: This function initiates the Block chain, and creates the genesis Block.  The genesis Block does not hold any transaction data
  *      or hash.
- *      This function should be called prior to any other functions as a necessary precondition for their success (all other functions should
+ *      This function static deque<Action> actions();
+// @TODO Add in the end tell pthread we finished
+static int gBlocksAdded = 0;
+should be called prior to any other functions as a necessary precondition for their success (all other functions should
  *      return with an error otherwise).
  * RETURN VALUE: On success 0, otherwise -1.
  */
-int init_blockchain() {
+int init_blockchain()
+{
 
 }
 
@@ -44,14 +67,20 @@ int init_blockchain() {
  */
 int add_block(char *data , int length)
 {
-	/*
-	 * @TODO allocates a block
-	 * @TODO adds data as string
-	 * @TODO set tentative father
-	 * @TODO assigns blocknum
-	 * @TODO adds to actions
-	 * @TODO return blocknum (or -1)
-	*/
+
+    /*
+     * @TODO allocates a block
+     * @TODO adds data as string
+     * @TODO set tentative father
+     * @TODO assigns blocknum
+     * @TODO adds to actions
+     * @TODO return blocknum (or -1)
+    */
+	int blockNum = -1;
+	Block block = new Block(data, length);
+	block.setFather(getDeepestBlock());
+	blockNum = takeMinUnusedBlocknum(block);
+	addToQueue(block);
 }
 
 /*
@@ -64,16 +93,34 @@ int add_block(char *data , int length)
 */
 int to_longest(int block_num)
 {
-	/*
-	 * @TODO Checks if the block num doesn't exists: return -2
-	 * @TODO Other errors(???): return -1
-	 * @TODO Checks if was already added(depth>0): return 1
-	 * @TODO Sets the block addInRealTime to true
-	 * @TODO Check if it's still in waiting: If yes, return 0
-	 *          If not, check if it was added in real time - and return 0/1
-	*/
+    /*
+     * @TODO Checks if the block num doesn't exists: return -2
+     * @TODO Other errors(???): return -1
+     * @TODO Checks if was already added(depth>0): return 1
+     * @TODO Sets the block addInRealTime to true
+     * @TODO Check if it's still in waiting: If yes, return 0
+     *          If not, check if it was added in real time - and return 0/1
+    */
+    Block* block = getBlockByBlocknum(block_num);
 
-	// even if set as real time, might've been added after we did the other check
+	if(block == nullptr)
+	{
+		return BLOCK_DOESNT_EXIST;
+	}
+	if(block.inChain())
+	{
+		return BLOCK_IN_CHAIN;
+	}
+	block.setRealTime();
+	if(! block.inChain() || block.wasAddedInRealTime())
+	{
+		return SUCCESS;
+	}
+	else
+	{
+		return BLOCK_IN_CHAIN;
+	}
+    // even if set as real time, might've been added after we did the other check
 }
 
 /*
@@ -84,22 +131,23 @@ int to_longest(int block_num)
 */
 int attach_now(int block_num)
 {
-	/*
-	 * @TODO Block all other block attachments
-	 * @TODO Check if the block num exists, otherwise return -2
-	 * @TODO Calls the daemon attach function
-	 * @TODO Return 0 on success/was already added
-	*/
+    /*
+     * @TODO Block all other block attachments
+     * @TODO Check if the block num exists, otherwise return -2
+     * @TODO Calls the daemon attach function
+     * @TODO Return 0 on success/was already added
+    */
 }
 /*
  * DESCRIPTION: Without blocking, check whether block_num was added to the chain.
  *      The block_num is the assigned value that was previously returned by add_block.
  * RETURN VALUE: 1 if true and 0 if false. If the block_num doesn't exist, return -2; In case of other errors, return -1.
 */
-int was_added(int block_num) {
-	/*
-	 * @TODO return depth>=0 if exists, otherwise -2
-	*/
+int was_added(int block_num)
+{
+    /*
+     * @TODO return depth>=0 if exists, otherwise -2
+    */
 }
 
 /*
@@ -108,9 +156,10 @@ int was_added(int block_num) {
  *      the new chain size.
  * RETURN VALUE: On success, the number of Blocks, otherwise -1.
 */
-int chain_size() {
-	// @TODO when -1???
-	return actualBlocksAdded();
+int chain_size()
+{
+    // @TODO when -1???
+    return gBlocksAdded;
 }
 
 /*
@@ -118,8 +167,15 @@ int chain_size() {
  *      detach them from the tree, free the blocks, and reuse the block_nums.
  * RETURN VALUE: On success 0, otherwise -1.
 */
-int prune_chain() {
-	// @TODO - Write TODO
+int prune_chain()
+{
+    /*
+     * @TODO mutex lock
+     * @TODO Get deepest block
+     * @TODO Build root bottom-up
+     * @TODO Delete irrelevant blocks from blockVector
+     * @TODO Handle queued blocks
+    */
 }
 
 /*
@@ -129,46 +185,74 @@ int prune_chain() {
  *      chain_size() is ok, a call to prune_chain() should fail.
  *      In case of a system error, the function should cause the process to exit.
 */
-void close_chain() {
-	/*
-		* @TODO Block all actions on the blockchain
-		* @TODO Print hashed pending
-		* @TODO Signal daemon to call pthread_exit()
-		* @TODO Clear all variables and free stuff
-		* @TODO Mark we finished for return_on_close
-	*/
+void close_chain()
+{
+    /*
+    	* @TODO Block all actions on the blockchain
+    	* @TODO Print hashed pending
+    	* @TODO Signal daemon to call pthread_exit()
+    	* @TODO Clear all variables and free stuff
+    	* @TODO Mark we finished for return_on_close
+    */
 }
 
 /*
  * DESCRIPTION: The function blocks and waits for close_chain to finish.
  * RETURN VALUE: If closing was successful, it returns 0.
  *      If close_chain was not called it should return -2. In case of other error, it should return -1.
-*/
+*/ //========================GLOBALS================================
+
 
 int return_on_close()
 {
-	/*
-		* @TODO Check if close_chain was called, otherwise return -2
-		* @TODO while(true), return 0 if it was closed
-	*/
+    /*
+    	* @TODO Check if close_chain was called, otherwise return -2
+    	* @TODO while(true), return 0 if it was closed
+    */
 }
 
 
 int takeMinUnusedBlocknum(Block* block)
 {
-	/*
-		* @TODO Iterate over vector, return first nullptr, sets the value as block
-		* @TODO If non found, add the block
-		* @TODO Return and set blocknum accordingly
-	*/
+    /*
+    	* @TODO Iterate over vector, return first nullptr, sets the value as block
+    	* @TODO If non found, add the block
+    	* @TODO Return and set blocknum accordingly
+    */
 }
 Block* getBlockByBlocknum(int blocknum)
 {
-	/*
-		* @TODO Returns the block from the vector if exists, otherwise nullptr
-	*/
+    /*
+    	* @TODO Returns the block from the vector if exists, otherwise nullptr
+    */
 }
 
+
+Block* getDeepestBlock()
+{
+
+}
+
+//========================DAEMON CODE============================
+
+
+// @TODO add initDaemon and init pthread, gBlocksAdded
+// @TODO receive genesis, gBlockVector
+void runDaemon()
+{
+    gBlocksAdded = 0;
+}
+void addToQueue(Block* toAdd)
+{
+    queueBlock.push_back(toAdd);
+}
+
+/*
+void attachBlockByNum(int blocknum)
+{
+
+}
+*/
 
 
 

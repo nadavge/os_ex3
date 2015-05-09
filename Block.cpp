@@ -6,6 +6,11 @@ Block::Block(char* data, int length) : _id(-1), _children(new vector<Block*>()),
 
 }
 
+bool Block::inChain()
+{
+	return this._depth >= 0;
+}
+
 Block::~Block()
 {
 	//dtor
