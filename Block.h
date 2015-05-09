@@ -67,6 +67,8 @@ class Block
 		Block* _father; //!< Member variable "_father"
 		int _depth;
 		static int maxDepth;
+		bool _toAddInRealTime;
+		bool _wasAddedInRealTime;
 };
 
 #endif // BLOCK_H

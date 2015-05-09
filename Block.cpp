@@ -1,6 +1,6 @@
 #include "Block.h"
 
-Block::Block(char* data, int length) : _id(-1), _children(new vector<Block*>()), _depth(-1)
+Block::Block(char* data, int length) : _id(-1), _children(new vector<Block*>()), _depth(-1), _wasAddedInRealTime(false), _toAddInRealTime(false)
 {
 	// @TODO convert data to string
 
