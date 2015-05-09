@@ -1,6 +1,6 @@
 #include "Action.h"
 
-Action::Action()
+Action::Action(Block* block) : _block(block), _realTime(false)
 {
 	//ctor
 }
