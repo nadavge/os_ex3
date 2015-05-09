@@ -61,12 +61,14 @@ class Block
 	protected:
 	private:
 		int _id; //!< Member variable "_id"
+		// @TODO Decide whether _data should be char array (and length) or String
 		String _data; //!< Member variable "_data"
+
 		vector <Block*> _children; //!< Member variable "_children"
 		char _hash[HASH_LENGTH]; //!< Member variable "_hash[HASH_LENGTH]"
 		Block* _father; //!< Member variable "_father"
 		int _depth;
-		static int maxDepth;
+		static int s_maxDepth;
 		bool _toAddInRealTime;
 		bool _wasAddedInRealTime;
 };

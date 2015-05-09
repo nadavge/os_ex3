@@ -1,5 +1,5 @@
+// TODO add file documentation header
 #include <deque>
-
 
 using namespace std;
 
@@ -8,9 +8,18 @@ using namespace std;
  *       Author: we!
  */
 
+//========================DECLARATIONS===========================
 
 int takeMinUnusedBlocknum(Block* block);
 Block* getBlockByBlocknum(int blocknum);
+
+ //========================GLOBALS================================
+
+static Block* gGenesis = nullptr;
+vector<Block*> gBlockVector();
+
+//========================IMPLEMENTATION==========================
+
 /*
  * DESCRIPTION: This function initiates the Block chain, and creates the genesis Block.  The genesis Block does not hold any transaction data
  *      or hash.
@@ -18,9 +27,6 @@ Block* getBlockByBlocknum(int blocknum);
  *      return with an error otherwise).
  * RETURN VALUE: On success 0, otherwise -1.
  */
-static Block* gGenesis = nullptr;
-vector<Block*> gBlockVector();
-// @TODO
 int init_blockchain() {
 
 }
@@ -41,6 +47,7 @@ int add_block(char *data , int length)
 	/*
 	 * @TODO allocates a block
 	 * @TODO adds data as string
+	 * @TODO set tentative father
 	 * @TODO assigns blocknum
 	 * @TODO adds to actions
 	 * @TODO return blocknum (or -1)
