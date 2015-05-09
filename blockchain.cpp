@@ -15,7 +15,7 @@ using namespace std;
  #define BLOCK_IN_CHAIN 1
  #define SUCCESS 0
 
-#define STARTED() (gBlocksAdded != NOT_STARTED)
+#define RUNNING() (gBlocksAdded != NOT_STARTED && ! gIsClosing)
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -34,12 +34,12 @@ inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
 
 //========================GLOBALS================================
-static deque<Block*> queueBlock();
+static deque<Block*> queueBlock;
 // @TODO Add in the end tell pthread we finished flag
-static int gBlocksAdded = 0;
+static int gBlocksAdded = NOT_STARTED;
 static Block* gGenesis = nullptr;
-static vector<Block*> gBlockVector();
-static vector<Block*> gDeepestBlocks();
+static vector<Block*> gBlockVector;
+static vector<Block*> gDeepestBlocks;
 static boolean gIsClosing = false;
 
 //========================IMPLEMENTATION==========================
@@ -54,7 +54,7 @@ static boolean gIsClosing = false;
 // @TODO Add in the end tell pthread we finished
 int init_blockchain()
 {
-	if(STARTED())
+	if(RUNNING())
 	{
 		return ERROR;
 	}
@@ -77,7 +77,7 @@ int init_blockchain()
  *      Since this is a non-blocking package, your implemented method should return as soon as possible, even before the Block was actually
  *      attached to the chain.
  *      Furthermore, the father Block should be determined before this function returns. The father Block should be the last Block of the
- *      current longest chain (arbitrary longest chain if there is more than one).
+ *      current longest chain (arbitrary longest chain if there is more than onSTARTED()e).
  *      Notice that once this call returns, the original data may be freed by the caller.
  * RETURN VALUE: On success, the function returns the lowest available block_num (> 0),
  *      which is assigned from now on to this individual piece of data.
@@ -85,9 +85,9 @@ int init_blockchain()
  */
 int add_block(char *data , int length)
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
-		return NOT_STARTED;
+		return NOT_STARTED;STARTED()
 	}
     /*
      * @TODO allocates a block
@@ -115,7 +115,7 @@ int add_block(char *data , int length)
 */
 int to_longest(int block_num)
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -157,7 +157,7 @@ int to_longest(int block_num)
 */
 int attach_now(int block_num)
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -175,7 +175,7 @@ int attach_now(int block_num)
 */
 int was_added(int block_num)
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -207,7 +207,7 @@ int was_added(int block_num)
 */
 int chain_size()
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -222,7 +222,7 @@ int chain_size()
 */
 int prune_chain()
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -269,7 +269,7 @@ int prune_chain()
 */
 void close_chain()
 {
-	if(! STARTED())
+	if(! RUNNING())
 	{
 		return NOT_STARTED;
 	}
@@ -281,6 +281,7 @@ void close_chain()
     	* @TODO Signal daemon to call pthread_exit()
     	* @TODO Clear all variables and free stuff
     	* @TODO Mark we finished for return_on_close
+    	* @TODO Reset gBlocksAdded to NOT_STARTED
     */
 }
 
