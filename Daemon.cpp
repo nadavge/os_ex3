@@ -1,10 +1,11 @@
 #include "Daemon.h"
 static deque<Action> actions();
 // @TODO Add in the end tell pthread we finished
-
+static int gBlocksAdded = 0;
+// @TODO add initDaemon and init pthread, gBlocksAdded
 void runDaemon()
 {
-	// @TODO start pthread
+	gBlocksAdded = 0;
 }
 void addAction(Action action)
 {
@@ -21,3 +22,6 @@ void attachBlockByNum(int blocknum)
 
 }
 
+int actualBlocksAdded() {
+	return gBlocksAdded;
+}

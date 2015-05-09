@@ -19,7 +19,6 @@ Block* getBlockByBlocknum(int blocknum);
  * RETURN VALUE: On success 0, otherwise -1.
  */
 static Block* gGenesis = nullptr;
-static int gBlocksAdded = 0;
 vector<Block*> gBlockVector();
 // @TODO
 int init_blockchain() {
@@ -90,7 +89,11 @@ int attach_now(int block_num)
  *      The block_num is the assigned value that was previously returned by add_block.
  * RETURN VALUE: 1 if true and 0 if false. If the block_num doesn't exist, return -2; In case of other errors, return -1.
 */
-int was_added(int block_num);
+int was_added(int block_num) {
+	/*
+	 * @TODO return depth>=0 if exists, otherwise -2
+	*/
+}
 
 /*
  * DESCRIPTION: Return how many Blocks were attached to the chain since init_blockchain.
@@ -98,14 +101,19 @@ int was_added(int block_num);
  *      the new chain size.
  * RETURN VALUE: On success, the number of Blocks, otherwise -1.
 */
-int chain_size();
+int chain_size() {
+	// @TODO when -1???
+	return actualBlocksAdded();
+}
 
 /*
  * DESCRIPTION: Search throughout the tree for sub-chains that are not the longest chain,
  *      detach them from the tree, free the blocks, and reuse the block_nums.
  * RETURN VALUE: On success 0, otherwise -1.
 */
-int prune_chain();
+int prune_chain() {
+	// @TODO - Write TODO
+}
 
 /*
  * DESCRIPTION: Close the recent blockchain and reset the system, so that it is possible to call init_blockchain again. Non-blocking.
@@ -114,7 +122,15 @@ int prune_chain();
  *      chain_size() is ok, a call to prune_chain() should fail.
  *      In case of a system error, the function should cause the process to exit.
 */
-void close_chain();
+void close_chain() {
+	/*
+		* @TODO Block all actions on the blockchain
+		* @TODO Print hashed pending
+		* @TODO Signal daemon to call pthread_exit()
+		* @TODO Clear all variables and free stuff
+		* @TODO Mark we finished for return_on_close
+	*/
+}
 
 /*
  * DESCRIPTION: The function blocks and waits for close_chain to finish.
@@ -124,17 +140,26 @@ void close_chain();
 
 int return_on_close()
 {
-
+	/*
+		* @TODO Check if close_chain was called, otherwise return -2
+		* @TODO while(true), return 0 if it was closed
+	*/
 }
 
 
 int takeMinUnusedBlocknum(Block* block)
 {
-
+	/*
+		* @TODO Iterate over vector, return first nullptr, sets the value as block
+		* @TODO If non found, add the block
+		* @TODO Return and set blocknum accordingly
+	*/
 }
 Block* getBlockByBlocknum(int blocknum)
 {
-
+	/*
+		* @TODO Returns the block from the vector if exists, otherwise nullptr
+	*/
 }
 
 
