@@ -1,10 +1,10 @@
 // TODO add file documentation header
 #include <deque>
 #include<pthread.h>
+#include <algorithm>
 #include <vector>
 #include "Block.h"
 #include "hash.h"
-
 // TODO \forall functions check when -1
 // TODO Add on close - pthread_mutex_destroy(&lock); close_hash_generator();
 
@@ -56,7 +56,7 @@ void attachBlockByNum(int blocknum);
 void addBlockAssumeMutex(Block* toAdd);
 
 //========================GLOBALS================================
-static deque<Block*> queueBlock;
+static deque<Block*> gQueueBlock;
 // TODO Add in the end tell pthread we finished flag
 static int gBlocksAdded = NOT_STARTED;
 static Block* gGenesis = nullptr;
@@ -277,7 +277,17 @@ int prune_chain()
         }
     }
 
-    // TODO Update queued father (assign new father if old father died)
+	for (auto block : gQueueBlock)
+	{
+		/*
+		 * Check if the blocks father is NOT in the longest chain => it was removed.
+		 * Replace the blocks father with the currently deepest block
+		 */ 
+		if (find(longestChain.begin(), longestChain.end(), block->getFather()) == longestChain.end())
+		{
+			block->setFather(longestChain.back());
+		}
+	}
 
     if (! UNLOCK_ALL())
     {
@@ -382,7 +392,7 @@ void runDaemon()
 }
 inline void addToQueue(Block* toAdd)
 {
-    queueBlock.push_back(toAdd);
+    gQueueBlock.push_back(toAdd);
 }
 
 
@@ -418,5 +428,8 @@ void addBlockAssumeMutex(Block* toAdd)
 
 	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
 	toAdd->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
+	
+	// Remove block from pending queue
+	gQueueBlock.erase(remove(gQueueBlock.begin(), gQueueBlock.end(), toAdd), gQueueBlock.end());
 }
 
