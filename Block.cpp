@@ -30,41 +30,7 @@ void Block::setHash(char* blockHash)
 	_hash = blockHash;
 }
 
-char* Block::getData()
-{
-	return _data;
-}
-int Block::getDataLength()
-{
-	return _dataLength;
-}
-bool Block::inChain()
-{
-    return _depth >= 0;
-}
-bool Block::wasAddedInRealTime()
-{
-    return _wasAddedInRealTime;
-}
 
-bool Block::toAddInRealTime()
-{
-    return _toAddInRealTime;
-}
-
-void Block::setAddInRealTime()
-{
-    _toAddInRealTime = true;
-}
-
-static int Block::getMaxDepth()
-{
-    return s_maxDepth;
-}
-static int Block::initMaxDepth()
-{
-    s_maxDepth = -1;
-}
 
 Block::~Block()
 {

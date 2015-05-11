@@ -20,11 +20,16 @@ class Block
 		/** Access _data
 		 * \return The current value of _data
 		 */
-		String getData() { return _data; }
+		char* getData() { return _data; }
+		int getDataLength() { return _dataLength; }
 		/** Set _data
 		 * \param val New value to set
 		 */
-		void getData(String val) { _data = val; }
+		bool setData(char* data, int length);
+bool inChain()
+{
+    return _depth >= 0;
+}
 		/** Access _children
 		 * \return The current value of _children
 		 */
@@ -40,7 +45,34 @@ class Block
 		/** Set _hash[HASH_LENGTH]
 		 * \param val New value to set
 		 */
-		void setHash[HASH_LENGTH](char val) { _hash[HASH_LENGTH] = val; }
+		void setHash(char* blockHash);
+bool inChain()
+{
+    return _depth >= 0;
+}
+bool wasAddedInRealTime()
+{
+    return _wasAddedInRealTime;
+}
+
+bool toAddInRealTime()
+{
+    return _toAddInRealTime;
+}
+
+void setAddInRealTime()
+{
+    _toAddInRealTime = true;
+}
+
+static int getMaxDepth()
+{
+    return s_maxDepth;
+}
+static int initMaxDepth()
+{
+    s_maxDepth = -1;
+}
 		/** Access _father
 		 * \return The current value of _father
 		 */
