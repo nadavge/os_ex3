@@ -1,6 +1,9 @@
 // TODO add file documentation header
 #include <deque>
 #include<pthread.h>
+#include <vector>
+#include "Block.h"
+#include "hash.h"
 
 // TODO \forall functions check when -1
 // TODO Add on close - pthread_mutex_destroy(&lock); close_hash_generator();
@@ -28,6 +31,7 @@ using namespace std;
 #define NOT_CLOSING -2
 #define ERROR -1
 #define BLOCK_IN_CHAIN 1
+#define BLOCK_NOT_IN_CHAIN 0
 #define SUCCESS 0
 
 #define RUNNING() (gBlocksAdded != NOT_STARTED && ! gIsClosing)
@@ -49,6 +53,7 @@ Block* getDeepestBlock();
 void runDaemon();
 inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
+void addBlockAssumeMutex(Block* toAdd);
 
 //========================GLOBALS================================
 static deque<Block*> queueBlock;
@@ -57,7 +62,7 @@ static int gBlocksAdded = NOT_STARTED;
 static Block* gGenesis = nullptr;
 static vector<Block*> gBlockVector;
 static vector<Block*> gDeepestBlocks;
-static boolean gIsClosing = false;
+static bool gIsClosing = false;
 pthread_mutex_t lock;
 
 //========================IMPLEMENTATION==========================
@@ -89,7 +94,7 @@ int init_blockchain()
     gGenesis->setFather(nullptr);
     gGenesis->setId(0);
     gBlockVector.push_back(gGenesis);
-    gDeepestBlocks().push_back(gGenesis);
+    gDeepestBlocks.push_back(gGenesis);
 
     return 0;
 }
@@ -113,13 +118,13 @@ int add_block(char *data , int length)
     }
 
     int blockNum = -1;
-    Block block = new Block();
+    Block* block = new Block();
     if(! block->setData(data, length))
 	{
 		delete block;
 		return ERROR;
 	}
-    block.setFather(getDeepestBlock());
+    block->setFather(getDeepestBlock());
     blockNum = takeMinUnusedBlocknum(block);
     addToQueue(block);
     return blockNum;
@@ -209,11 +214,11 @@ int was_added(int block_num)
 
     if(block->inChain())
     {
-        return 1;
+        return BLOCK_IN_CHAIN;
     }
     else
     {
-        return 0;
+        return BLOCK_NOT_IN_CHAIN; 
     }
 }
 
@@ -291,7 +296,7 @@ void close_chain()
 {
     if(! RUNNING())
     {
-        return ERROR;
+        exit(1);
     }
 
     gIsClosing = true;
@@ -381,7 +386,7 @@ inline void addToQueue(Block* toAdd)
 }
 
 
-void addBlock(Block* toAdd)
+void daemonAddBlock(Block* toAdd)
 {
 	// TODO What if THIS function FAILS?
 	int nonce = -1;
@@ -421,4 +426,4 @@ void attachBlockByNum(int blocknum)
 {
 
 }
-*/
+*daemonA
