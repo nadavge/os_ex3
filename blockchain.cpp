@@ -177,19 +177,17 @@ int attach_now(int block_num)
     {
         return ERROR;
     }
-    if
     Block* block = getBlockByBlocknum(block_num);
     if(block == nullptr)
     {
         return BLOCK_DOESNT_EXIST;
     }
-    if(block->inChain())
+    if(! block->inChain())
     {
-        return SUCCESS;
+        addBlockAssumeMutex(block);
     }
-    // TODO Block all other block attachments
-    // TODO Calls the daemon attach function
-    // TODO Return 0 on success
+
+    return SUCCESS;
 }
 /*
  * DESCRIPTION: Without blocking, check whether block_num was added to the chain.
@@ -382,7 +380,8 @@ inline void addToQueue(Block* toAdd)
     queueBlock.push_back(toAdd);
 }
 
-void addBlockToChain(Block* toAdd)
+
+void addBlock(Block* toAdd)
 {
 	// TODO What if THIS function FAILS?
 	int nonce = -1;
@@ -395,6 +394,18 @@ void addBlockToChain(Block* toAdd)
         return ERROR;
     }
 
+	addBlockAssumeMutex(toAdd);
+
+    if(! UNLOCK_ALL())
+    {
+        return ERROR;
+    }
+}
+void addBlockAssumeMutex(Block* toAdd)
+{
+	// TODO What if THIS function FAILS?
+	int nonce = -1;
+
     if(toAdd->toAddInRealTime())
     {
         toAdd->setFather(getDeepestBlock());
@@ -402,14 +413,6 @@ void addBlockToChain(Block* toAdd)
 
 	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
 	block->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
-
-
-    if(! UNLOCK_ALL())
-    {
-        return ERROR;
-    }
-
-
 }
 
 /*    // TODO while(true), return 0 if it was closed
