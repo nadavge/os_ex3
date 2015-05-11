@@ -1,8 +1,10 @@
 #include "Block.h"
+#include <cstring>
+
+using namespace std;
 // TODO change const init order
 Block::Block() :
     _id(-1),
-    _children(new vector<Block*>()),
     _depth(-1),
     _wasAddedInRealTime(false),
     _toAddInRealTime(false),
@@ -14,7 +16,7 @@ Block::Block() :
 }
 bool Block::setData(char* data, int length)
 {
-	_data = malloc(length*sizeof(char));
+	_data = new char[length];
 	if(_data == nullptr)
 	{
 		_dataLength = -1;

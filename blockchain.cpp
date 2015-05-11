@@ -392,18 +392,18 @@ void daemonAddBlock(Block* toAdd)
 	int nonce = -1;
     if(! RUNNING())
     {
-        return ERROR;
+        
     }
     if(! LOCK_ALL())
     {
-        return ERROR;
+       
     }
 
 	addBlockAssumeMutex(toAdd);
 
     if(! UNLOCK_ALL())
     {
-        return ERROR;
+      
     }
 }
 void addBlockAssumeMutex(Block* toAdd)
@@ -417,13 +417,6 @@ void addBlockAssumeMutex(Block* toAdd)
     }
 
 	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
-	block->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
+	toAdd->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
 }
 
-/*    // TODO while(true), return 0 if it was closed
-
-void attachBlockByNum(int blocknum)
-{
-
-}
-*daemonA
