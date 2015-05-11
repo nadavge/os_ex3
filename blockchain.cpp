@@ -6,7 +6,6 @@
 #include "Block.h"
 #include "hash.h"
 // TODO \forall functions check when -1
-// TODO Add on close - pthread_mutex_destroy(&lock); close_hash_generator();
 
 // TODO think
 /*
@@ -14,11 +13,6 @@
  * need to *not* do this
  */
 
-// TODO think
-/*
- * TODO think about when hash calculation happens and how to signal if hash
- * was already calculated
- */
 using namespace std;
 
 /*
@@ -50,19 +44,21 @@ int return_on_close();
 int takeMinUnusedBlocknum(Block* block);
 Block* getBlockByBlocknum(int blocknum);
 Block* getDeepestBlock();
-void runDaemon();
+bool initDaemon();
+void* runDaemon(void* arg);
 inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
 void addBlockAssumeMutex(Block* toAdd);
+void daemonAddBlock(Block* toAdd);
 
 //========================GLOBALS================================
 static deque<Block*> gQueueBlock;
-// TODO Add in the end tell pthread we finished flag
 static int gBlocksAdded = NOT_STARTED;
 static Block* gGenesis = nullptr;
 static vector<Block*> gBlockVector;
 static vector<Block*> gDeepestBlocks;
 static bool gIsClosing = false;
+static pthread_t gDaemonThread = {0};
 pthread_mutex_t lock;
 
 //========================IMPLEMENTATION==========================
@@ -76,18 +72,17 @@ pthread_mutex_t lock;
 
 int init_blockchain()
 {
+	// TODO check flaging system - might not act as intended
     if(RUNNING())
-    {
-        return ERROR;
-    }
-    if (pthread_mutex_init(&lock, NULL) != 0)
     {
         return ERROR;
     }
     gBlocksAdded = 0;
     gIsClosing = false;
-    // TODO Add more initialization?
-    init_hash_generator();
+	if (! initDaemon())
+	{
+		return ERROR;
+	}
 
     Block::initMaxDepth();
     gGenesis = new Block();
@@ -382,14 +377,44 @@ Block* getDeepestBlock()
 }
 
 //========================DAEMON CODE============================
-// TODO while(true), return 0 if it was closed
-
-
-// TODO add initDaemon and init pthread, gBlocksAdded
-void runDaemon()
+bool initDaemon()
 {
-    gBlocksAdded = 0;
+    if (pthread_mutex_init(&lock, NULL) != 0)
+    {
+        return false;
+    }
+	//TODO maybe used some other place
+	gIsClosing = false;
+	init_hash_generator();
+
+	if (pthread_create(&gDaemonThread, nullptr, runDaemon, nullptr) != 0)
+	{
+		close_hash_generator();
+		pthread_mutex_destroy(&lock);
+		return false;
+	}
 }
+
+void* runDaemon(void* arg)
+{
+	Block* block = nullptr;
+	while(! gIsClosing)
+	{
+		if (! gQueueBlock.empty())
+		{
+			block = gQueueBlock.front();
+			gQueueBlock.pop_front();
+
+			daemonAddBlock(block);
+		}
+	}
+
+	// TODO Free all block items (from everywhere!!!!)
+	pthread_mutex_destroy(&lock);
+	close_hash_generator();
+	return nullptr;
+}
+
 inline void addToQueue(Block* toAdd)
 {
     gQueueBlock.push_back(toAdd);
