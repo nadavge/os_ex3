@@ -109,7 +109,7 @@ int add_block(char *data , int length)
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
 
     int blockNum = -1;
@@ -137,7 +137,7 @@ int to_longest(int block_num)
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
 
     Block* block = getBlockByBlocknum(block_num);
@@ -171,8 +171,13 @@ int attach_now(int block_num)
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
+    if(! LOCK_ALL())
+    {
+        return ERROR;
+    }
+    if
     Block* block = getBlockByBlocknum(block_num);
     if(block == nullptr)
     {
@@ -195,7 +200,7 @@ int was_added(int block_num)
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
     Block* block = getBlockByBlocknum(block_num);
 
@@ -224,7 +229,7 @@ int chain_size()
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
     return gBlocksAdded;
 }
@@ -238,7 +243,7 @@ int prune_chain()
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
     if(! LOCK_ALL())
     {
@@ -288,7 +293,7 @@ void close_chain()
 {
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
 
     gIsClosing = true;
@@ -383,7 +388,7 @@ void addBlockToChain(Block* toAdd)
 	int nonce = -1;
     if(! RUNNING())
     {
-        return NOT_STARTED;
+        return ERROR;
     }
     if(! LOCK_ALL())
     {
