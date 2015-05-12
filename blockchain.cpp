@@ -33,7 +33,7 @@ using namespace std;
 #define compare_and_swap __sync_bool_compare_and_swap
 #define RUNNING() (gBlocksAdded != NOT_STARTED && ! gIsClosing)
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
-#define UNLOCK_ALL() (pthread_mutex_lock(&lock) == 0)
+#define UNLOCK_ALL() (pthread_mutex_unlock(&lock) == 0)
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -528,7 +528,7 @@ void addBlockAssumeMutex(Block* toAdd)
 	{
 		gDeepestBlocks.push_back(toAdd);
 	}
-	
+	++gBlocksAdded;	
 	// Remove block from pending queue
 	gQueueBlock.erase(remove(gQueueBlock.begin(), gQueueBlock.end(), toAdd), gQueueBlock.end());
 }
