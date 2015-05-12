@@ -37,7 +37,7 @@ using namespace std;
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 #define UNLOCK_ALL() (pthread_mutex_unlock(&lock) == 0)
 
-#define DEBUG(x) cout << x << endl
+#define DEBUG(x) 0
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -447,7 +447,7 @@ void* runDaemon(void* arg)
 	Block* block = nullptr;
 	while(! gIsClosing)
 	{
-		if (! gQueueBlock.empty())
+		while (! gQueueBlock.empty())
 		{
 			DEBUG("Got job to do (" << gQueueBlock.size() << ")");
 			block = gQueueBlock.front();
@@ -456,6 +456,8 @@ void* runDaemon(void* arg)
 			daemonAddBlock(block);
 			DEBUG("Added block");
 		}
+
+		pthread_yield();
 	}
 
 	terminateDaemon();
@@ -479,6 +481,8 @@ void terminateDaemon()
 	{
 		block = gQueueBlock.front();
 		gQueueBlock.pop_front();
+
+		gBlockVector.at(block->getId()) = nullptr;
 
 		hash = generateHash(block);
 		cout << hash << endl;
@@ -505,6 +509,7 @@ void terminateDaemon()
 	pthread_mutex_destroy(&lock);
 	close_hash_generator();
 
+	gIsClosing = false;
 	DEBUG("Terminated");
 }
 
