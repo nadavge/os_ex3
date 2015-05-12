@@ -349,10 +349,13 @@ int return_on_close()
     {
         return NOT_CLOSING;
     }
-    while(gIsClosing)
+	pthread_join(gDaemonThread, nullptr);
+//TODO remove if pthread_join works
+/*    while(gIsClosing)
     {
         // TODO Maybe let pthread know we're waiting?
     }
+*/
 
     return 0;
 }
@@ -416,6 +419,10 @@ char* generateHash(Block* block)
 	// TODO Remove debugging hash
 	char* hash = new char[5];
 	memcpy(hash, "test", sizeof(char)*5);
+	for (unsigned int i=0; i < 1<<2; ++i)
+	{
+		i = i + 1;
+	}
 	return hash;
 	int nonce = generate_nonce(block->getId(), block->getFather()->getId());
 	return generate_hash(block->getData(), block->getDataLength(), nonce);
@@ -430,7 +437,7 @@ bool initDaemon()
     }
 	
 	init_hash_generator();
-
+	
 	if (pthread_create(&gDaemonThread, nullptr, runDaemon, nullptr) != 0)
 	{
 		close_hash_generator();
@@ -462,7 +469,8 @@ void* runDaemon(void* arg)
 
 	terminateDaemon();
 
-	// TODO set flag of (is daemon running maybe)
+	pthread_exit(nullptr);
+
 	return nullptr;
 }
 
