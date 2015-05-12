@@ -1,5 +1,6 @@
 CC=g++
-FLAGS=-Wall -std=c++11
+#TODO remove debuggin flag
+FLAGS=-Wall -std=c++11 -g
 
 TAR=tar
 TARFLAGS=cvf
