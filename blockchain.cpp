@@ -262,10 +262,10 @@ int prune_chain()
 
 
     Block* deepest = getDeepestBlock();
-    deque<Block*> longestChain;
+    Block* longestChain[Block::getMaxDepth() + 1];
     while(deepest != nullptr)
     {
-        longestChain.push_front(deepest);
+        longestChain[deepest->getDepth()] = deepest;
         deepest = deepest->getFather();
     }
     for(unsigned int i = 0; i < gBlockVector.size(); i++)
@@ -277,9 +277,10 @@ int prune_chain()
             continue;
         }
 
-        if(currBlock != longestChain.at(currBlock->getDepth()))
+        if(currBlock != longestChain[currBlock->getDepth()])
         {
-            delete gBlockVector.at(i);
+	    DEBUG("Deleting " << i << ", at depth " << currBlock->getDepth());
+            delete currBlock;
             gBlockVector.at(i) = nullptr;
         }
     }
@@ -290,11 +291,24 @@ int prune_chain()
 		 * Check if the blocks father is NOT in the longest chain => it was removed.
 		 * Replace the blocks father with the currently deepest block
 		 */ 
-		if (find(longestChain.begin(), longestChain.end(), block->getFather()) == longestChain.end())
+		bool fatherAlive = false;
+		for (int i = 0; i < Block::getMaxDepth() + 1; ++i)
 		{
-			block->setFather(longestChain.back());
+			if (longestChain[i] == block)
+			{
+				fatherAlive = true;
+				break;
+			}
+		}
+
+		if (! fatherAlive)
+		{
+			block->setFather(longestChain[Block::getMaxDepth()]);
 		}
 	}
+
+	gDeepestBlocks.clear();
+	gDeepestBlocks.push_back(longestChain[Block::getMaxDepth()]);
 
     if (! UNLOCK_ALL())
     {
