@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <vector>
 #include <iostream>
+// TODO remove string after hash normal (generateHash)
+#include <cstring>
 #include "Block.h"
 #include "blockchain.h"
 #include "hash.h"
@@ -397,6 +399,10 @@ Block* getDeepestBlock()
 */
 char* generateHash(Block* block)
 {
+	// TODO Remove debugging hash
+	char* hash = new char[5];
+	memcpy(hash, "test", sizeof(char)*5);
+	return hash;
 	int nonce = generate_nonce(block->getId(), block->getFather()->getId());
 	return generate_hash(block->getData(), block->getDataLength(), nonce);
 }
