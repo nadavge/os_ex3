@@ -40,7 +40,7 @@ void Block::setHash(char* blockHash)
 
 Block::~Block()
 {
-    delete _hash;
-    delete _data;
+    delete[] _hash;
+    delete[] _data;
 }
 
