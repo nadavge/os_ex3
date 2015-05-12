@@ -2,7 +2,9 @@
 #include <cstring>
 
 using namespace std;
-// TODO change const init order
+
+int Block::s_maxDepth = 0;
+
 Block::Block() :
     _id(-1),
 	_data(nullptr),
@@ -15,6 +17,7 @@ Block::Block() :
 {
 
 }
+
 bool Block::setData(char* data, int length)
 {
 	_data = new char[length];
@@ -40,3 +43,4 @@ Block::~Block()
     delete _hash;
     delete _data;
 }
+
