@@ -26,6 +26,12 @@ class Block
 		{
 			return _depth;
 		}
+
+		void setDepth(int depth)
+		{
+			_depth = depth;
+		}
+
 		char* getData() { return _data; }
 		int getDataLength() { return _dataLength; }
 		/** Set _data
@@ -60,9 +66,15 @@ static int getMaxDepth()
 {
     return s_maxDepth;
 }
+
+static void setMaxDepth(int depth)
+{
+	s_maxDepth = depth;
+}
+
 static int initMaxDepth()
 {
-    s_maxDepth = -1;
+    s_maxDepth = 0;
 }
 		/** Access _father
 		 * \return The current value of _father

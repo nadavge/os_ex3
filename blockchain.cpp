@@ -3,6 +3,7 @@
 #include<pthread.h>
 #include <algorithm>
 #include <vector>
+#include <iostream>
 #include "Block.h"
 #include "hash.h"
 // TODO \forall functions check when -1
@@ -51,6 +52,7 @@ inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
 void addBlockAssumeMutex(Block* toAdd);
 void daemonAddBlock(Block* toAdd);
+void terminateDaemon();
 
 //========================GLOBALS================================
 static deque<Block*> gQueueBlock;
@@ -78,19 +80,23 @@ int init_blockchain()
     {
         return ERROR;
     }
-    gBlocksAdded = 0;
-    gIsClosing = false;
-	if (! initDaemon())
-	{
-		return ERROR;
-	}
-
-    Block::initMaxDepth();
+	
+	Block::initMaxDepth();
     gGenesis = new Block();
     gGenesis->setFather(nullptr);
+	gGenesis->setDepth(0);
     gGenesis->setId(0);
     gBlockVector.push_back(gGenesis);
     gDeepestBlocks.push_back(gGenesis);
+
+    gBlocksAdded = 0;
+    gIsClosing = false;
+	
+	if (! initDaemon())
+	{
+		delete gGenesis;
+		return ERROR;
+	}
 
     return 0;
 }
@@ -307,13 +313,6 @@ void close_chain()
 
     gIsClosing = true;
 
-    // TODO Block all actions on the blockchain
-    // TODO Print hashed pending
-    // TODO Signal daemon to call pthread_exit()
-    // TODO Clear all variables and free stuff
-    // TODO Mark we finished for return_on_close
-    // TODO Reset gBlocksAdded to NOT_STARTED
-
 }
 
 /*
@@ -384,6 +383,19 @@ Block* getDeepestBlock()
     return *it;
 }
 
+/**
+* @brief Generate the hash for a block based on its data
+*
+* @param block the block to generate the hash for
+*
+* @return a pointer to the hash (need to free)
+*/
+char* generateHash(Block* block)
+{
+	int nonce = generate_nonce(block->getId(), block->getFather()->getId());
+	return generate_hash(block->getData(), block->getDataLength(), nonce);
+}
+
 //========================DAEMON CODE============================
 bool initDaemon()
 {
@@ -391,8 +403,7 @@ bool initDaemon()
     {
         return false;
     }
-	//TODO maybe used some other place
-	gIsClosing = false;
+	
 	init_hash_generator();
 
 	if (pthread_create(&gDaemonThread, nullptr, runDaemon, nullptr) != 0)
@@ -417,10 +428,53 @@ void* runDaemon(void* arg)
 		}
 	}
 
+	terminateDaemon();
+
+	// TODO set flag of (is daemon running maybe)
+	return nullptr;
+}
+
+void terminateDaemon()
+{
+	char* hash = nullptr;
+	Block* block = nullptr;
+
 	// TODO Free all block items (from everywhere!!!!)
+	if (! LOCK_ALL())
+	{
+		exit(1);
+	}
+
+	while (! gQueueBlock.empty())
+	{
+		block = gQueueBlock.front();
+		gQueueBlock.pop_front();
+
+		hash = generateHash(block);
+		cout << hash << endl;
+		delete hash;
+		delete block;
+	}
+
+	for (auto &block : gBlockVector)
+	{
+		if (block != nullptr)
+		{
+			delete block;
+		}
+	}
+
+	gBlockVector.clear();
+	gDeepestBlocks.clear();
+
+	if (! UNLOCK_ALL())
+	{
+		exit(1);
+	}
+
 	pthread_mutex_destroy(&lock);
 	close_hash_generator();
-	return nullptr;
+
 }
 
 inline void addToQueue(Block* toAdd)
@@ -435,18 +489,18 @@ void daemonAddBlock(Block* toAdd)
 	int nonce = -1;
     if(! RUNNING())
     {
-        
+        exit(1);
     }
     if(! LOCK_ALL())
     {
-       
+		exit(1);
     }
 
 	addBlockAssumeMutex(toAdd);
 
     if(! UNLOCK_ALL())
     {
-      
+ 		exit(1);
     }
 }
 void addBlockAssumeMutex(Block* toAdd)
@@ -459,8 +513,19 @@ void addBlockAssumeMutex(Block* toAdd)
         toAdd->setFather(getDeepestBlock());
     }
 
-	nonce = generate_nonce(toAdd->getId(), toAdd->getFather()->getId());
-	toAdd->setHash(generate_hash(toAdd->getData(), toAdd->getDataLength(), nonce));
+	toAdd->setHash(generateHash(toAdd));
+	toAdd->setDepth(toAdd->getFather()->getDepth()+1);
+
+	if (toAdd->getDepth() > Block::getMaxDepth())
+	{
+		gDeepestBlocks.clear();
+		Block::setMaxDepth(toAdd->getDepth());
+	}
+
+	if (toAdd->getDepth() == Block::getMaxDepth())
+	{
+		gDeepestBlocks.push_back(toAdd);
+	}
 	
 	// Remove block from pending queue
 	gQueueBlock.erase(remove(gQueueBlock.begin(), gQueueBlock.end(), toAdd), gQueueBlock.end());
