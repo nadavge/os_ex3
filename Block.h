@@ -72,7 +72,7 @@ static void setMaxDepth(int depth)
 	s_maxDepth = depth;
 }
 
-static int initMaxDepth()
+static void initMaxDepth()
 {
     s_maxDepth = 0;
 }

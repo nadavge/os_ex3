@@ -5,12 +5,13 @@ using namespace std;
 // TODO change const init order
 Block::Block() :
     _id(-1),
-    _depth(-1),
-    _wasAddedInRealTime(false),
-    _toAddInRealTime(false),
-    _dataLength(-1),
 	_data(nullptr),
-	_hash(nullptr)
+    _dataLength(-1),
+	_hash(nullptr),
+	_father(nullptr),
+    _depth(-1),
+    _toAddInRealTime(false),
+    _wasAddedInRealTime(false)
 {
 
 }

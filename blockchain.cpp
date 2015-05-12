@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include "Block.h"
+#include "blockchain.h"
 #include "hash.h"
 // TODO \forall functions check when -1
 // TODO Srand
@@ -263,7 +264,7 @@ int prune_chain()
         longestChain.push_front(deepest);
         deepest = deepest->getFather();
     }
-    for(int i = 0; i < gBlockVector.size(); i++)
+    for(unsigned int i = 0; i < gBlockVector.size(); i++)
     {
         Block* currBlock;
         currBlock = gBlockVector.at(i);
@@ -295,6 +296,8 @@ int prune_chain()
     {
         return ERROR;
     }
+
+	return SUCCESS;
 }
 
 /*
@@ -341,7 +344,7 @@ int takeMinUnusedBlocknum(Block* block)
 {
 	// Signals whether the function got the min value
 	bool tookMin = false;
-    int blocknum = 0;
+    unsigned int blocknum = 0;
 
 	while (! tookMin && blocknum < gBlockVector.size())
 	{
@@ -363,7 +366,7 @@ int takeMinUnusedBlocknum(Block* block)
 }
 Block* getBlockByBlocknum(int blocknum)
 {
-    if(blocknum >= gBlockVector.size())
+    if((unsigned int) blocknum >= gBlockVector.size())
     {
         return nullptr;
     }
@@ -412,6 +415,8 @@ bool initDaemon()
 		pthread_mutex_destroy(&lock);
 		return false;
 	}
+
+	return true;
 }
 
 void* runDaemon(void* arg)
@@ -486,7 +491,6 @@ inline void addToQueue(Block* toAdd)
 void daemonAddBlock(Block* toAdd)
 {
 	// TODO What if THIS function FAILS?
-	int nonce = -1;
     if(! RUNNING())
     {
         exit(1);
@@ -506,8 +510,6 @@ void daemonAddBlock(Block* toAdd)
 void addBlockAssumeMutex(Block* toAdd)
 {
 	// TODO What if THIS function FAILS?
-	int nonce = -1;
-
     if(toAdd->toAddInRealTime())
     {
         toAdd->setFather(getDeepestBlock());

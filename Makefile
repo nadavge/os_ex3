@@ -8,29 +8,29 @@ TARSRCS=Makefile README #TODO choose srcs
 
 all: libblockchain.a
 
+libblockchain.a: blockchain.o Block.o
+	ar rcs $@ $^
+
 #======== OBJECTS ==========
 
 %.o: %.cpp
-	$(CC) $(FLAGS) -c 
-
-stablePriorityQueue.o: stablePriorityQueue.cpp
-	$(CC) $(FLAGS) -c stablePriorityQueue.cpp
+	$(CC) $(FLAGS) -c $<
 
 #======== SOURCE ===========
 
-uthreads.cpp: uthreads.h stablePriorityQueue.h thread.h utils.h
+blockchain.cpp: blockchain.h Block.h hash.h
 
-stablePriorityQueue.cpp: uthreads.h thread.h stablePriorityQueue.h
+Block.cpp: Block.h
 
-libuthreads.a: uthreads.o stablePriorityQueue.o
-	ar rcs libuthreads.a uthreads.o stablePriorityQueue.o
 
 #======== MISC =============
 
 tar: $(TARSRCS)
 	$(TAR) $(TARFLAGS) $(TARNAME) $(TARSRCS)
 
-.PHONY: clean tar
+.PHONY: all clean tar remake
 
 clean:
-	rm -f *.o libuthreads.a
+	rm -f *.o libblockchain.a
+
+remake: clean all
