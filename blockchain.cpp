@@ -6,7 +6,7 @@
 #include "Block.h"
 #include "hash.h"
 // TODO \forall functions check when -1
-
+// TODO Srand
 // TODO think
 /*
  * TODO daemon might be switched into after close while adding a new block
@@ -28,6 +28,7 @@ using namespace std;
 #define BLOCK_NOT_IN_CHAIN 0
 #define SUCCESS 0
 
+#define compare_and_swap __sync_bool_compare_and_swap
 #define RUNNING() (gBlocksAdded != NOT_STARTED && ! gIsClosing)
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 #define UNLOCK_ALL() (pthread_mutex_lock(&lock) == 0)
@@ -272,7 +273,7 @@ int prune_chain()
         }
     }
 
-	for (auto block : gQueueBlock)
+	for (auto &block : gQueueBlock)
 	{
 		/*
 		 * Check if the blocks father is NOT in the longest chain => it was removed.
@@ -339,17 +340,25 @@ int return_on_close()
 
 int takeMinUnusedBlocknum(Block* block)
 {
-
+	// Signals whether the function got the min value
+	bool tookMin = false;
     int blocknum = 0;
-    for (auto &i : gBlockVector)
-    {
-        if(i == nullptr)
-        {
-            gBlockVector.at(blocknum) = block;
-            return blocknum;
-        }
-        blocknum++;
-    }
+
+	while (! tookMin && blocknum < gBlockVector.size())
+	{
+		blocknum = 0;
+   		for (auto &currBlock : gBlockVector)
+    	{
+       		if(currBlock == nullptr)
+        	{
+				tookMin = compare_and_swap(&gBlockVector[blocknum], nullptr, block);
+				break;
+        	}
+
+	        blocknum++;
+   		}
+	}
+
     gBlockVector.push_back(block);
     return blocknum;
 }
@@ -368,7 +377,6 @@ Block* getBlockByBlocknum(int blocknum)
 */
 Block* getDeepestBlock()
 {
-
 
     auto it = gDeepestBlocks.begin();
     advance(it, rand() % gDeepestBlocks.size());
