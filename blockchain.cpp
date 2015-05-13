@@ -37,7 +37,7 @@ using namespace std;
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 #define UNLOCK_ALL() (pthread_mutex_unlock(&lock) == 0)
 
-#define DEBUG(x) 0
+#define DEBUG(x) cout << x <<endl
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -279,7 +279,6 @@ int prune_chain()
 
         if(currBlock != longestChain[currBlock->getDepth()])
         {
-	    DEBUG("Deleting " << i << ", at depth " << currBlock->getDepth());
             delete currBlock;
             gBlockVector.at(i) = nullptr;
         }
@@ -382,9 +381,31 @@ int takeMinUnusedBlocknum(Block* block)
    		}
 	}
 
-    gBlockVector.push_back(block);
+	/*
+	 * If the no free slots were spotted in the vector, we need to push the item to the back.
+	 * While doing so, another thread might race to push to, so to verify we return the correct
+	 * block num we search for the value we just added.
+	 * If it wasn't for the mutex limitation we would simply use a mutex here
+	 */
+	if (! tookMin)
+	{
+
+		blocknum = 0;
+	    gBlockVector.push_back(block);
+	    for (auto &currBlock : gBlockVector)
+		{
+
+			if(currBlock == block)
+			{
+				break;
+			}
+			++blocknum;
+		}
+	}
+
     return blocknum;
 }
+
 Block* getBlockByBlocknum(int blocknum)
 {
     if((unsigned int) blocknum >= gBlockVector.size())
@@ -402,6 +423,7 @@ Block* getDeepestBlock()
 {
 
     auto it = gDeepestBlocks.begin();
+DEBUG("DBSIZE: "<<gDeepestBlocks.size());
     advance(it, rand() % gDeepestBlocks.size());
 
     return *it;
@@ -450,18 +472,15 @@ bool initDaemon()
 
 void* runDaemon(void* arg)
 {
-	DEBUG("Starting daemon...");
 	Block* block = nullptr;
 	while(! gIsClosing)
 	{
 		while (! gQueueBlock.empty())
 		{
-			DEBUG("Got job to do (" << gQueueBlock.size() << ")");
 			block = gQueueBlock.front();
 			gQueueBlock.pop_front();
 
 			daemonAddBlock(block);
-			DEBUG("Added block");
 		}
 
 		pthread_yield();
@@ -502,12 +521,15 @@ void terminateDaemon()
 	{
 		if (block != nullptr)
 		{
+			DEBUG("Deleting " << block->getId());
+			DEBUG(block->getData());
 			delete block;
 		}
 	}
 
 	gBlockVector.clear();
 	gDeepestBlocks.clear();
+DEBUG("Cleared gDeepestBlock on terminate");
 
 	if (! UNLOCK_ALL())
 	{
@@ -518,7 +540,6 @@ void terminateDaemon()
 	close_hash_generator();
 
 	gIsClosing = false;
-	DEBUG("Terminated");
 }
 
 inline void addToQueue(Block* toAdd)
@@ -534,21 +555,17 @@ void daemonAddBlock(Block* toAdd)
     {
         exit(1);
     }
-	DEBUG("Trying to lock in daemon");
     if(! LOCK_ALL())
     {
 		exit(1);
     }
 
-	DEBUG( "Locked!");
 	addBlockAssumeMutex(toAdd);
 
-	DEBUG( "trying to unLock!");
     if(! UNLOCK_ALL())
     {
  		exit(1);
     }
-	DEBUG( "Unlocked");
 }
 void addBlockAssumeMutex(Block* toAdd)
 {
@@ -563,12 +580,14 @@ void addBlockAssumeMutex(Block* toAdd)
 
 	if (toAdd->getDepth() > Block::getMaxDepth())
 	{
-		gDeepestBlocks.clear();
+		vector<Block*> tempDeepestBlocks = {toAdd};
+		gDeepestBlocks = tempDeepestBlocks;
 		Block::setMaxDepth(toAdd->getDepth());
+		DEBUG("Got deeper, clearing deepestblock");
 	}
-
-	if (toAdd->getDepth() == Block::getMaxDepth())
+	else if (toAdd->getDepth() == Block::getMaxDepth())
 	{
+		DEBUG("Adding to deepest block");
 		gDeepestBlocks.push_back(toAdd);
 	}
 	++gBlocksAdded;	
