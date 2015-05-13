@@ -328,7 +328,7 @@ void close_chain()
 {
     if(! RUNNING())
     {
-        exit(1);
+        exit(2);
     }
 
     gIsClosing = true;
@@ -501,7 +501,7 @@ void terminateDaemon()
 	// TODO Free all block items (from everywhere!!!!)
 	if (! LOCK_ALL())
 	{
-		exit(1);
+		exit(3);
 	}
 
 	while (! gQueueBlock.empty())
@@ -533,7 +533,7 @@ DEBUG("Cleared gDeepestBlock on terminate");
 
 	if (! UNLOCK_ALL())
 	{
-		exit(1);
+		exit(4);
 	}
 
 	pthread_mutex_destroy(&lock);
@@ -551,20 +551,16 @@ inline void addToQueue(Block* toAdd)
 void daemonAddBlock(Block* toAdd)
 {
 	// TODO What if THIS function FAILS?
-    if(! RUNNING())
-    {
-        exit(1);
-    }
     if(! LOCK_ALL())
     {
-		exit(1);
+		exit(6);
     }
 
 	addBlockAssumeMutex(toAdd);
 
     if(! UNLOCK_ALL())
     {
- 		exit(1);
+ 		exit(7);
     }
 }
 void addBlockAssumeMutex(Block* toAdd)
