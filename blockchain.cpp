@@ -71,6 +71,33 @@ pthread_mutex_t lock;
 
 //========================IMPLEMENTATION==========================
 
+//TODO remove on release
+void print_chain()
+{
+	int i = 0;
+	cout << endl << endl << "================================================" << endl << endl;
+	for(auto &block : gBlockVector)
+	{
+		cout << "===Block " << i << "===" << endl;
+		if(block == nullptr)
+		{
+			cout << "NULLPTR block" << endl;
+			continue;
+		}
+		cout << "Id: " << block->getId() << ", depth: " << block->getDepth() << endl;
+		cout << "AddInRealTime: " << block->toAddInRealTime() << ", Was added in RT: " << block->wasAddedInRealTime() << endl;
+		if(block->getFather() == nullptr) {
+			cout << "Orphan block" << endl;
+		}
+		else
+		{
+			cout << "Father blocknum: " << block->getFather()->getId() << endl;
+		}
+		++i;
+	}
+	cout << endl << endl << "=================================================" << endl << endl;
+}
+
 int init_blockchain()
 {
 	// TODO check flaging system - might not act as intended
@@ -315,33 +342,6 @@ int prune_chain()
 	}
 
 	return SUCCESS;
-}
-
-//TODO remove on release
-void print_chain()
-{
-	int i = 0;
-	cout << endl << endl << "================================================" << endl << endl;
-	for(auto &block : gBlockVector)
-	{
-		cout << "===Block " << i << "===" << endl;
-		if(block == nullptr)
-		{
-			cout << "NULLPTR block" << endl;
-			continue;
-		}
-		cout << "Id: " << block->getId() << ", depth: " << block->getDepth() << endl;
-		cout << "AddInRealTime: " << block->toAddInRealTime() << ", Was added in RT: " << block->wasAddedInRealTime() << endl;
-		if(block->getFather() == nullptr) {
-			cout << "Orphan block" << endl;
-		}
-		else
-		{
-			cout << "Father blocknum: " << block->getFather()->getId() << endl;
-		}
-		++i;
-	}
-	cout << endl << endl << "=================================================" << endl << endl;
 }
 
 void close_chain()
