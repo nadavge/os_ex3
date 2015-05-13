@@ -6,14 +6,14 @@ using namespace std;
 int Block::s_maxDepth = 0;
 
 Block::Block() :
-    _id(-1),
+	_id(-1),
 	_data(nullptr),
-    _dataLength(-1),
+	_dataLength(-1),
 	_hash(nullptr),
 	_father(nullptr),
-    _depth(-1),
-    _toAddInRealTime(false),
-    _wasAddedInRealTime(false)
+	_depth(-1),
+	_toAddInRealTime(false),
+	_wasAddedInRealTime(false)
 {
 
 }
@@ -31,16 +31,14 @@ bool Block::setData(char* data, int length)
 
 	return true;
 }
+
 void Block::setHash(char* blockHash)
 {
 	_hash = blockHash;
 }
 
-
-
 Block::~Block()
 {
-    delete[] _hash;
-    delete[] _data;
+	delete[] _hash;
+	delete[] _data;
 }
-
