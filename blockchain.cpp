@@ -190,6 +190,10 @@ int attach_now(int block_num)
     Block* block = getBlockByBlocknum(block_num);
     if(block == nullptr)
     {
+	if(! UNLOCK_ALL())
+	{
+		return ERROR;
+	}
         return BLOCK_DOESNT_EXIST;
     }
     if(! block->inChain())
