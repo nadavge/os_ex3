@@ -116,6 +116,7 @@ int add_block(char *data , int length)
 
 	block->setFather(getDeepestBlock());
 	blockNum = takeMinUnusedBlocknum(block);
+    	block->setId(blockNum);
 	addToQueue(block);
 
 	return blockNum;
@@ -234,6 +235,9 @@ int prune_chain()
 	 * 3. Iterate over all blocks waiting to be added, and for each of them whose father was
 	 *	deleted, choose a new father who's the deepest block in the current chain
 	 */
+
+	int currDepth = -1;
+
 	if(! RUNNING())
 	{
 		return ERROR;
@@ -246,9 +250,16 @@ int prune_chain()
 
 	Block* deepest = getDeepestBlock();
 	Block* longestChain[Block::getMaxDepth() + 1];
-	
-	while(deepest != nullptr)
+	currDepth = 0;
+	//TODO remove print	
+	print_chain();
+
+	//TODO remove currDepth check (used for infinite loop check)
+	while(deepest != nullptr && currDepth <= Block::getMaxDepth()+10)
 	{
+		cout << "Currently at {" << deepest->getId() << "} - Depth: " << deepest->getDepth() << "/" << Block::getMaxDepth() << endl;
+		++currDepth;
+
 		longestChain[deepest->getDepth()] = deepest;
 		deepest = deepest->getFather();
 	}
@@ -300,6 +311,33 @@ int prune_chain()
 	}
 
 	return SUCCESS;
+}
+
+//TODO remove on release
+void print_chain()
+{
+	int i = 0;
+	cout << endl << endl << "================================================" << endl << endl;
+	for(auto &block : gBlockVector)
+	{
+		cout << "===Block " << i << "===" << endl;
+		if(block == nullptr)
+		{
+			cout << "NULLPTR block" << endl;
+			continue;
+		}
+		cout << "Id: " << block->getId() << ", depth: " << block->getDepth() << endl;
+		cout << "AddInRealTime: " << block->toAddInRealTime() << ", Was added in RT: " << block->wasAddedInRealTime() << endl;
+		if(block->getFather() == nullptr) {
+			cout << "Orphan block" << endl;
+		}
+		else
+		{
+			cout << "Father blocknum: " << block->getFather()->getId() << endl;
+		}
+		++i;
+	}
+	cout << endl << endl << "=================================================" << endl << endl;
 }
 
 void close_chain()

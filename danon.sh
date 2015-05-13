@@ -3,5 +3,5 @@ make remake;
 mv -f ./libblockchain.a ./tests
 cd tests;
 make clean;
-make;
+make test1;
 echo Done!

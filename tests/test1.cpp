@@ -116,6 +116,7 @@ int main() {
 	a2 = false;
 
 	pthread_join(fT, NULL);
+	cout << "Prunning " << endl;
 	prune_chain();
 	cout << "closing" << endl;
 	close_chain();

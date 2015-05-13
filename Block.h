@@ -51,6 +51,10 @@ public:
 	{
 			return _wasAddedInRealTime;
 	}
+	void setWasAddedInRealTime()
+	{
+		_wasAddedInRealTime = true;
+	}
 
 	bool toAddInRealTime()
 	{
