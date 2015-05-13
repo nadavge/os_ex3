@@ -46,7 +46,7 @@ void* runDaemon(void* arg);
 inline void addToQueue(Block* toAdd);
 void attachBlockByNum(int blocknum);
 void addBlockAssumeMutex(Block* toAdd);
-void daemonAddBlock(Block* toAdd);
+void handlePending();
 void terminateDaemon();
 
 //========================GLOBALS================================
@@ -495,19 +495,17 @@ bool initDaemon()
 */
 void* runDaemon(void* arg)
 {
-	Block* block = nullptr;
 	while(! gIsClosing)
 	{
-		while (! gQueueBlock.empty())
+		// If nothing to do, switch context
+		if (gQueueBlock.empty())
 		{
-			// TODO Handle case of context switch occuring while here
-			block = gQueueBlock.front();
-			gQueueBlock.pop_front();
-
-			daemonAddBlock(block);
+			pthread_yield();
 		}
-
-		pthread_yield();
+		else
+		{
+			handlePending();
+		}
 	}
 
 	terminateDaemon();
@@ -579,25 +577,22 @@ inline void addToQueue(Block* toAdd)
 
 
 /**
-* @brief The wrapper function for daemon adding, responsible for locking
-*
-* @param toAdd the block to add
+* @brief Handles the pending queue for waiting blocks
 */
-void daemonAddBlock(Block* toAdd)
+void handlePending()
 {
+	Block* toAdd = nullptr;
+
 	if(! LOCK_ALL())
 	{
 		exit(6);
 	}
 
-	/*
-	 * It might be that the daemon has already extracted an item from the queue
-	 * and is ready to insert, but the item was added with attach_now after a context
-	 * switch. To make sure we need to add an item, we need to check whether it was
-	 * added after we LOCK ourselves
-	 */
-	if (! toAdd->inChain())
+	if (! gQueueBlock.empty())
 	{
+		toAdd = gQueueBlock.front();
+		gQueueBlock.pop_front();
+
 		addBlockAssumeMutex(toAdd);
 	}
 
