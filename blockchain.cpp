@@ -500,6 +500,7 @@ void* runDaemon(void* arg)
 	{
 		while (! gQueueBlock.empty())
 		{
+			// TODO Handle case of context switch occuring while here
 			block = gQueueBlock.front();
 			gQueueBlock.pop_front();
 
@@ -589,7 +590,16 @@ void daemonAddBlock(Block* toAdd)
 		exit(6);
 	}
 
-	addBlockAssumeMutex(toAdd);
+	/*
+	 * It might be that the daemon has already extracted an item from the queue
+	 * and is ready to insert, but the item was added with attach_now after a context
+	 * switch. To make sure we need to add an item, we need to check whether it was
+	 * added after we LOCK ourselves
+	 */
+	if (! toAdd->inChain())
+	{
+		addBlockAssumeMutex(toAdd);
+	}
 
 	if(! UNLOCK_ALL())
 	{
