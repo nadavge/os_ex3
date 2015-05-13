@@ -100,7 +100,6 @@ void print_chain()
 
 int init_blockchain()
 {
-	// TODO check flaging system - might not act as intended
 	if(RUNNING())
 	{
 		return ERROR;
@@ -285,9 +284,9 @@ int prune_chain()
 	//TODO remove print	
 	print_chain();
 
-	//TODO remove currDepth check (used for infinite loop check)
-	while(deepest != nullptr && currDepth <= Block::getMaxDepth()+10)
+	while(deepest != nullptr)
 	{
+		// TODO Remove debug print
 		cout << "Currently at {" << deepest->getId() << "} - Depth: " << deepest->getDepth() << "/" << Block::getMaxDepth() << endl;
 		++currDepth;
 
@@ -560,7 +559,7 @@ void terminateDaemon()
 
 	pthread_mutex_destroy(&lock);
 	close_hash_generator();
-	//TODO remove when using states
+	
 	gBlocksAdded = NOT_STARTED;
 	gIsClosing = false;
 }
