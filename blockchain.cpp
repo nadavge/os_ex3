@@ -35,7 +35,7 @@ using namespace std;
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 #define UNLOCK_ALL() (pthread_mutex_unlock(&lock) == 0)
 
-#define DEBUG(x)  //cout << x <<endl
+#define DEBUG(x)  ////cout << x <<endl
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -263,19 +263,22 @@ int prune_chain()
         return ERROR;
     }
 
-
+	//cout << "In prune" << endl;
     Block* deepest = getDeepestBlock();
+	//cout << "got deepest" << endl;
     Block* longestChain[Block::getMaxDepth() + 1];
     while(deepest != nullptr)
     {
+	//cout << "Currently at " << deepest->getDepth() << "/" << Block::getMaxDepth() << endl;
         longestChain[deepest->getDepth()] = deepest;
         deepest = deepest->getFather();
     }
+	//cout << "found root" << endl;
     for(unsigned int i = 0; i < gBlockVector.size(); i++)
     {
         Block* currBlock;
         currBlock = gBlockVector.at(i);
-        if(currBlock == nullptr)
+        if(currBlock == nullptr || !currBlock->inChain())
         {
             continue;
         }
@@ -287,6 +290,7 @@ int prune_chain()
         }
     }
 
+	//cout << "Cleared non queued + chain blocks" << endl;
 	for (auto &block : gQueueBlock)
 	{
 		/*
@@ -504,6 +508,7 @@ void terminateDaemon()
 		block = gQueueBlock.front();
 		gQueueBlock.pop_front();
 
+		//cout << "DELETING FROM QUEUE: " << block->getId() << endl;
 		gBlockVector.at(block->getId()) = nullptr;
 
 		hash = generateHash(block);
