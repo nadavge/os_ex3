@@ -6,7 +6,7 @@ CPPFLAGS = -Wall -g -std=c++11
 all: test
 
 clean:
-	rm -f test1.o blockchain
+	rm -f test2.o test1.o blockchain
 
 test1.o: ../blockchain.h ../hash.h test1.cpp
 	$(CC) $(CPPFLAGS) -c test1.cpp
