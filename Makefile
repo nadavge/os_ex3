@@ -5,7 +5,7 @@ FLAGS=-Wall -std=c++11 -g
 TAR=tar
 TARFLAGS=cvf
 TARNAME=ex3.tar
-TARSRCS=Makefile README #TODO choose srcs
+TARSRCS=Makefile README Block.* blockchain.*
 
 all: libblockchain.a
 
