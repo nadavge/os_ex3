@@ -7,14 +7,15 @@
  */
 
 #include <deque>
-#include<pthread.h>
+#include <pthread.h>
 #include <algorithm>
+#include <cstdlib>
+#include <ctime>
 #include <vector>
 #include <iostream>
 #include "Block.h"
 #include "blockchain.h"
 #include "hash.h"
-// TODO Srand
 
 using namespace std;
 
@@ -77,7 +78,10 @@ int init_blockchain()
 	{
 		return ERROR;
 	}
-	
+
+	// Used for hash function	
+	srand(time(0));
+
 	Block::initMaxDepth();
 	gGenesis = new Block();
 	gGenesis->setFather(nullptr);
