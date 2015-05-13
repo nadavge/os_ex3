@@ -37,7 +37,7 @@ using namespace std;
 #define LOCK_ALL() (pthread_mutex_lock(&lock) == 0)
 #define UNLOCK_ALL() (pthread_mutex_unlock(&lock) == 0)
 
-#define DEBUG(x) cout << x <<endl
+#define DEBUG(x)  //cout << x <<endl
 //========================DECLARATIONS===========================
 int init_blockchain();
 int add_block(char *data , int length);
@@ -198,6 +198,11 @@ int attach_now(int block_num)
     {
         addBlockAssumeMutex(block);
     }
+
+	if(! UNLOCK_ALL())
+	{
+		return ERROR;
+	}
 
     return SUCCESS;
 }
@@ -522,7 +527,6 @@ void terminateDaemon()
 		if (block != nullptr)
 		{
 			DEBUG("Deleting " << block->getId());
-			DEBUG(block->getData());
 			delete block;
 		}
 	}
@@ -538,7 +542,8 @@ DEBUG("Cleared gDeepestBlock on terminate");
 
 	pthread_mutex_destroy(&lock);
 	close_hash_generator();
-
+	//TODO remove when using states
+	gBlocksAdded = NOT_STARTED;
 	gIsClosing = false;
 }
 
