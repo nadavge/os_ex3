@@ -1,8 +1,18 @@
+/*
+ * Block.h
+ * A bitcoin-inspired block for a blockchain definition
+ * Authors:
+ * 	Nadav Geva <nadav.geva4@gmail.com>
+ * 	Daniel Danon <danondaniel@gmail.com>
+ */
 #ifndef BLOCK_H
 #define BLOCK_H
 
 #define HASH_SIZE (16+1)
 
+/*
+ * The class representing a block in the blockchain for transactions
+ */
 class Block
 {
 public:

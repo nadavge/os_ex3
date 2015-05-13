@@ -1,3 +1,10 @@
+/*
+ * Block.cpp
+ * A bitcoin-inspired block for blockchain implementation
+ * Authors:
+ * 	Nadav Geva <nadav.geva4@gmail.com>
+ * 	Daniel Danon <danondaniel@gmail.com>
+ */
 #include "Block.h"
 #include <cstring>
 
