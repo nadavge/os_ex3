@@ -71,33 +71,6 @@ pthread_mutex_t lock;
 
 //========================IMPLEMENTATION==========================
 
-//TODO remove on release
-void print_chain()
-{
-	int i = 0;
-	cout << endl << endl << "================================================" << endl << endl;
-	for(auto &block : gBlockVector)
-	{
-		cout << "===Block " << i << "===" << endl;
-		if(block == nullptr)
-		{
-			cout << "NULLPTR block" << endl;
-			continue;
-		}
-		cout << "Id: " << block->getId() << ", depth: " << block->getDepth() << endl;
-		cout << "AddInRealTime: " << block->toAddInRealTime() << ", Was added in RT: " << block->wasAddedInRealTime() << endl;
-		if(block->getFather() == nullptr) {
-			cout << "Orphan block" << endl;
-		}
-		else
-		{
-			cout << "Father blocknum: " << block->getFather()->getId() << endl;
-		}
-		++i;
-	}
-	cout << endl << endl << "=================================================" << endl << endl;
-}
-
 int init_blockchain()
 {
 	if(RUNNING())
@@ -266,8 +239,6 @@ int prune_chain()
 	 *	deleted, choose a new father who's the deepest block in the current chain
 	 */
 
-	int currDepth = -1;
-
 	if(! RUNNING())
 	{
 		return ERROR;
@@ -280,16 +251,9 @@ int prune_chain()
 
 	Block* deepest = getDeepestBlock();
 	Block* longestChain[Block::getMaxDepth() + 1];
-	currDepth = 0;
-	//TODO remove print	
-	print_chain();
 
 	while(deepest != nullptr)
 	{
-		// TODO Remove debug print
-		cout << "Currently at {" << deepest->getId() << "} - Depth: " << deepest->getDepth() << "/" << Block::getMaxDepth() << endl;
-		++currDepth;
-
 		longestChain[deepest->getDepth()] = deepest;
 		deepest = deepest->getFather();
 	}
